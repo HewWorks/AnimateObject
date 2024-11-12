@@ -7,15 +7,20 @@ using UnityEngine.Events;
 public class AnimateObject : MonoBehaviour
 {
     #region Animation Control
+    [ContextMenu( "Animate" )]/*NEW*/
+    public void Animate( ) => Animate("" );/*NEW*/
     public void Animate(string animationName)
     {
+        if (string.IsNullOrEmpty( animationName )) { animationName = CurrentAnimation; }/*NEW*/
+
+        if (!parent) { parent = transform; }/*NEW*/
+
         if (!TryGetAnimationInfo(animationName, out var info))
         { Debug.LogWarning("Animation named: \"" + animationName + "\" does not exist!", gameObject); return; }
 
         if (IsAnimating) StopCoroutine(animating);
         animating = StartCoroutine(Animating(info));
     }
-
     public bool IsAnimating { get; private set; } = false;
     private Coroutine animating = null;
     private IEnumerator Animating(AnimationInfo info)
@@ -583,7 +588,11 @@ class AnimateObjectTool : Editor
     }
     private bool DrawNodeScaleHandle(ref AnimateObject.AnimationInfo.Node node)
     {
-        Vector3 scale = Handles.ScaleHandle(node.Scale, node.Position, node.Rotation);
+#if UNITY_2021_1_OR_NEWER
+        Vector3 scale = Handles.ScaleHandle(node.Scale, node.Position, node.Rotation);/*EDIT*/
+#else
+        Vector3 scale = Handles.ScaleHandle(node.Scale, node.Position, node.Rotation, 1);/*NEW*/
+#endif
         if (EditorGUI.EndChangeCheck())
         {
             //Undo.RecordObject(target, "Move point");
